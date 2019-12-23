@@ -1,9 +1,63 @@
 # zshrc
 # ©︎ 2019 ObuchiYuki
 
-########################################
-# 環境変数
+
 export LANG=ja_JP.UTF-8
+
+# ============================================================================= #
+# -- 初期化 -- 
+if [ ! -e ~/.zsh_initirized ]; then
+    cd ~/
+
+    # install brew 
+    /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+
+    # install packages
+    brew install cmake ffmpeg git lame pyenv source-highlight go atomicparsley youtube-dl
+    brew install coreutils diffutils ed findutils gawk gnu-sed gnu-tar grep gzip binutils
+
+    # syntax-highlighting
+    git clone "https://github.com/zsh-users/zsh-syntax-highlighting" ".zsh-syntax-highlighting"
+
+    # pyenv
+    yes | /usr/local/bin/pyenv install 3.7.3
+    /usr/local/bin/pyenv global 3.7.3
+
+    # initirized
+    touch ~/.zsh_initirized
+
+    echo -e "\n\e[36mInitirizing completed! Restart terminal."
+    exit
+else
+
+
+# ============================================================================= #
+# パスを通す
+
+# PATH
+export PATH="/bin":$PATH
+export PATH="/sbin":$PATH
+export PATH="$HOME/.local/bin":$PATH
+export PATH="/usr/local/bin":$PATH
+export PATH="/usr/local/sbin":$PATH
+export PATH="/usr/local/opt/openssl/bin":$PATH  
+export PATH="$HOME/Library/Python/3.7/bin":$PATH
+
+# GNU PATH
+export PATH="/usr/local/opt/grep/libexec/gnubin":$PATH
+export PATH="/usr/local/opt/coreutils/libexec/gnubin":$PATH
+export PATH="/usr/local/opt/findutils/libexec/gnubin":$PATH
+export PATH="/usr/local/opt/binutils/bin":$PATH
+export PATH="/usr/local/opt/gnu-tar/libexec/gnubin":$PATH
+
+
+export LDFLAGS="-L/usr/local/opt/binutils/lib"
+export CPPFLAGS="-I/usr/local/opt/binutils/include"
+
+
+# ============================================================================= #
+# Zshの設定
+# ============================================================================= 
 
 # 色を使用出来るようにする
 autoload -Uz colors
@@ -20,7 +74,12 @@ select-word-style default
 zstyle ':zle:*' word-chars " /=;@:{},|"
 zstyle ':zle:*' word-style unspecified
 
-# vcs_infoを設定
+# Zsh Syntax Highlighting初期化
+source $HOME/.zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+ZSH_HIGHLIGHT_STYLES[path]=none
+ZSH_HIGHLIGHT_STYLES[path_prefix]=none
+
+# git infoを設定
 autoload -Uz vcs_info
 autoload -Uz add-zsh-hook
 
@@ -31,40 +90,18 @@ zstyle ':vcs_info:*' formats " %F{cyan}%b"
 zstyle ':vcs_info:*' actionformats '[%b|%a]'
 precmd () { vcs_info }
 
+# ========================= #
 # プロンプト設定
 setopt prompt_subst
 PROMPT='
 %F{228}%1d%F{c}${vcs_info_msg_0_}
 %(?.%F{161}.%F{124})❯ %f'
 
-########################################
-# 自己環境変数
-export PATH="$HOME/.local/bin":$PATH
-export PATH="/usr/local/bin":$PATH
-export PATH="/usr/local/sbin":$PATH
-export PATH="/usr/local/opt/openssl/bin":$PATH  
-export PATH="$HOME/Library/Python/3.7/bin":$PATH
+#PROMPT='
+#$fg[yellow]%1d$fg[cyan]${vcs_info_msg_0_}
+#%(?.$fg[magenta].$fg[red])❯ %f'
 
-
-########################################
-# 初期化
-# Pyenv初期化
-export PYENV_ROOT="$HOME/.pyenv"
-export PATH="$PYENV_ROOT/bin":$PATH
-eval "$(pyenv init -)"
-
-# Go初期化
-export GOPATH=$DEVELOPER/go
-
-# Zsh Syntax Highlighting初期化
-source $HOME/.zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
-ZSH_HIGHLIGHT_STYLES[path]=none
-ZSH_HIGHLIGHT_STYLES[path_prefix]=none
-
-# Rust初期化
-export PATH="$HOME/.cargo/bin":$PATH
-
-########################################
+# =================================================== #
 # 補完
 # 補完機能を有効にする
 autoload -Uz compinit
@@ -125,27 +162,67 @@ setopt hist_reduce_blanks
 # 高機能なワイルドカード展開を使用する
 setopt extended_glob
 
-########################################
-# エイリアス
-# オプションをデフォルトにする
-alias ls='ls -G'
-alias mkdir='mkdir -p'
-alias rm='rm -i'
+# ============================================================================= #
+# ここまでZshの設定
+# ============================================================================= #
+
+
+
+# ============================================================================= #
+# Command変更
+# =================================================== #
+# コマンド初期化
+
+# Pyenv初期化
+export PYENV_ROOT="$HOME/.pyenv"
+export PATH="$PYENV_ROOT/bin":$PATH
+eval "$(pyenv init -)"
+
+# Go初期化
+export GOPATH=$DEVELOPER/go
+
+# =================================================== #
+# aliases
+
+# default
+alias ls='ls --color'
+alias grep='grep --color'
 alias cp='cp -v'
+alias mv='mv -v'
+alias which='type -a'
+
+# append
+alias sound-dl='youtube-dl -w -f 140 --embed-thumbnail -i -o "~/Downloads/%(title)s.%(ext)s"'
+
+# lessで色が見えるように
+export LESS='-R'
+export LESSOPEN='| /usr/local/bin/src-hilite-lesspipe.sh  %s'
+
+# sourceでhisotory読み込まないように
 source() {
   case $1 in *_history) echo "[source] It's so dangerous to load history file with source command." >&2; return 1; esac
   builtin source "$@"
 }
 
-# 省略コマンド
-alias sound-dl='youtube-dl -w -f 140 --embed-thumbnail -i -o "~/Downloads/%(title)s.%(ext)s"'
-alias vim='/usr/local/bin/vim'
-alias scntool='/Applications/Xcode.app/Contents/Developer/usr/bin/scntool'
-alias game='sudo /System/Volumes/Data/Applications/OpenEmu.app/Contents/MacOS/OpenEmu'
-alias less='/usr/share/vim/vim80/macros/less.sh'
-alias python2='/usr/bin/python'
-alias magica-commit='/Applications/MagicaVoxel/commit'
-########################################
-# 初期化コマンド
+
+# rmはrm_realに
+alias rm_real='rm'
+
+# rmはゴミ箱にmvにする
+if [ -d ${HOME}/.Trash ]
+then
+    alias rm='mv --backup=numbered --target-directory=${HOME}/.Trash'
+fi
+
+
+# ============================================================================= #
+# Command変更
+
+
+# =================================================== #
+# 初期化
 clear
 
+
+
+fi
