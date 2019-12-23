@@ -1,5 +1,6 @@
 # zshrc
 # ©︎ 2019 ObuchiYuki
+# for mac OS
 
 
 export LANG=ja_JP.UTF-8
@@ -93,13 +94,10 @@ precmd () { vcs_info }
 # ========================= #
 # プロンプト設定
 setopt prompt_subst
+
 PROMPT='
 %F{228}%1d%F{c}${vcs_info_msg_0_}
 %(?.%F{161}.%F{124})❯ %f'
-
-#PROMPT='
-#$fg[yellow]%1d$fg[cyan]${vcs_info_msg_0_}
-#%(?.$fg[magenta].$fg[red])❯ %f'
 
 # =================================================== #
 # 補完
